@@ -59,6 +59,18 @@ local dev in `config/cors.php`.
 ## Route groups
 - Public: `POST /register|/login|/admin/login`, `GET /posts|/blogs|/challenges|/broadcast`
 - Member (`auth:sanctum`): profile, settings, smoke-logs, goals, reminders,
-  heatmap, checkins, posts/blogs/comments, challenges join/log, reports, requests
+  heatmap, checkins, posts/blogs/comments, challenges join/log, reports, requests,
+  `GET /notifications/due` (real-time peak-craving alerts, polled every ~30s)
 - Admin (`auth:sanctum` + `admin`): `/admin/...` users, reports, requests,
   challenges CRUD, broadcast publish/clear, analytics overview
+
+## Real-time peak-craving notifications
+When a user marks a heatmap cell as **Peak Craving** (`POST /heatmap/toggle` or
+`/heatmap/log` with `intensity=2`), a recurring weekly `peak_craving_alerts`
+row is armed for that `day_index`/`slot_index`. `GET /notifications/due` (polled
+by the SPA) delivers one `user_notifications` row the moment that window's start
+hour arrives (slot `0`=6 AM … `5`=9 PM), then marks it `fetched_at` so it fires
+once. A `Schedule::call(...)->everyMinute()` closure in `routes/console.php`
+provides a fallback delivery path; `php artisan schedule:work` enables it during
+dev. Timezone is `Asia/Yangon` (`APP_TIMEZONE`); grace window is
+`PEAK_CRAVING_GRACE_MINUTES` (default 10).

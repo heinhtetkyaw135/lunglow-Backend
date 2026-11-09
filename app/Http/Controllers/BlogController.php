@@ -115,9 +115,6 @@ class BlogController extends Controller
 
     private function url(?string $path): ?string
     {
-        if (!$path) return null;
-        return str_starts_with($path, 'http') || str_starts_with($path, '/')
-            ? $path
-            : '/storage/' . ltrim($path, '/');
+        return \App\Support\MediaUrl::make($path);
     }
 }

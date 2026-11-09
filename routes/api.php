@@ -12,6 +12,7 @@ use App\Http\Controllers\CheckinController;
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\GoalController;
 use App\Http\Controllers\HeatmapController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReminderController;
@@ -87,6 +88,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/reports', [ReportController::class, 'store']);
     Route::get('/requests', [RequestController::class, 'index']);
     Route::post('/requests', [RequestController::class, 'store']);
+
+    // Real-time peak-craving alerts (SPA polls every ~30s)
+    Route::get('/notifications/due', [NotificationController::class, 'due']);
 });
 
 /*

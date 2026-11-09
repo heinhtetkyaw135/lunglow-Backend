@@ -93,6 +93,16 @@ class User extends Authenticatable
         return $this->hasMany(UserRequest::class);
     }
 
+    public function peakCravingAlerts()
+    {
+        return $this->hasMany(PeakCravingAlert::class);
+    }
+
+    public function notifications()
+    {
+        return $this->hasMany(UserNotification::class);
+    }
+
     public function challenges()
     {
         return $this->belongsToMany(Challenge::class, 'challenge_user')
@@ -122,8 +132,6 @@ class User extends Authenticatable
         if (!$this->avatar) {
             return '/assets/avatar.png';
         }
-        return str_starts_with($this->avatar, 'http') || str_starts_with($this->avatar, '/')
-            ? $this->avatar
-            : '/storage/' . ltrim($this->avatar, '/');
+        return \App\Support\MediaUrl::make($this->avatar);
     }
 }

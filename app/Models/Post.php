@@ -36,11 +36,6 @@ class Post extends Model
 
     public function getImageUrlAttribute(): ?string
     {
-        if (!$this->image) {
-            return null;
-        }
-        return str_starts_with($this->image, 'http') || str_starts_with($this->image, '/')
-            ? $this->image
-            : '/storage/' . ltrim($this->image, '/');
+        return \App\Support\MediaUrl::make($this->image);
     }
 }

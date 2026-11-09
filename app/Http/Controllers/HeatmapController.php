@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\PeakCravingAlert;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -39,6 +40,10 @@ class HeatmapController extends Controller
             'occurred_at' => now(),
         ]);
 
+        // Peak Craving (2) schedules a weekly alert for this window's start;
+        // cycling the cell away from 2 cancels it.
+        $this->syncPeakAlert($request->user(), $data['day_index'], $data['slot_index'], $data['intensity']);
+
         return response()->json(['ok' => true]);
     }
 
@@ -53,14 +58,34 @@ class HeatmapController extends Controller
 
         $now = now();
         $slot = intdiv($now->hour, 3); // 0..5 for 3h blocks
+        $day = $data['day_index'] ?? $now->dayOfWeek;
+        $slot = $data['slot_index'] ?? $slot;
 
         $request->user()->cravingLogs()->create([
-            'day_index' => $data['day_index'] ?? $now->dayOfWeek,
-            'slot_index' => $data['slot_index'] ?? $slot,
+            'day_index' => $day,
+            'slot_index' => $slot,
             'intensity' => $data['intensity'] ?? 2,
             'occurred_at' => $now,
         ]);
 
+        // "Log craving now" with peak intensity also arms the weekly alert.
+        $this->syncPeakAlert($request->user(), $day, $slot, $data['intensity'] ?? 2);
+
         return response()->json(['ok' => true]);
+    }
+
+    private function syncPeakAlert($user, int $dayIndex, int $slotIndex, int $intensity): void
+    {
+        if ($intensity === 2) {
+            PeakCravingAlert::updateOrCreate(
+                ['user_id' => $user->id, 'day_index' => $dayIndex, 'slot_index' => $slotIndex],
+                ['active' => true]
+            );
+        } else {
+            PeakCravingAlert::where('user_id', $user->id)
+                ->where('day_index', $dayIndex)
+                ->where('slot_index', $slotIndex)
+                ->update(['active' => false]);
+        }
     }
 }

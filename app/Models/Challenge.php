@@ -28,11 +28,6 @@ class Challenge extends Model
 
     public function getCoverUrlAttribute(): ?string
     {
-        if (!$this->cover) {
-            return null;
-        }
-        return str_starts_with($this->cover, 'http') || str_starts_with($this->cover, '/')
-            ? $this->cover
-            : '/storage/' . ltrim($this->cover, '/');
+        return \App\Support\MediaUrl::make($this->cover);
     }
 }

@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'peak_craving' => [
+        'grace_minutes' => env('PEAK_CRAVING_GRACE_MINUTES', 10),
+    ],
+
 ];
