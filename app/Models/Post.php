@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasPrefixedRouteBinding;
 use Illuminate\Database\Eloquent\Model;
 
 class Post extends Model
 {
+    use HasPrefixedRouteBinding;
+
     protected $fillable = [
         'user_id', 'post_type', 'tip_category', 'title',
         'content', 'image', 'badge_key', 'badge_custom', 'stats', 'reaction_counts',

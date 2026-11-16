@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasPrefixedRouteBinding;
 use Illuminate\Database\Eloquent\Model;
 
 class Blog extends Model
 {
+    use HasPrefixedRouteBinding;
+
     protected $fillable = [
         'user_id', 'title', 'category', 'author_role', 'images', 'content', 'likes',
     ];

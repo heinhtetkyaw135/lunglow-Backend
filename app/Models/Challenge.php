@@ -2,10 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasPrefixedRouteBinding;
 use Illuminate\Database\Eloquent\Model;
 
 class Challenge extends Model
 {
+    use HasPrefixedRouteBinding;
+
     protected $fillable = [
         'title', 'description', 'details', 'reward',
         'days', 'active', 'emoji', 'cover',

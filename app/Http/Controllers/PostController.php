@@ -2,15 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\ResolvesViewer;
 use App\Models\Post;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class PostController extends Controller
 {
+    use ResolvesViewer;
+
     public function index(Request $request)
     {
-        $viewerId = $request->user()?->id;
+        // Public route — resolve the Sanctum token explicitly so `userReacted`
+        // and `isYou` reflect the logged-in viewer instead of always being false.
+        $viewerId = $this->viewerId($request);
 
         $posts = Post::with(['user', 'comments.user', 'reactions'])
             ->latest()

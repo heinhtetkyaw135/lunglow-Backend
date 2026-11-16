@@ -2,15 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Concerns\ResolvesViewer;
 use App\Models\Blog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
 class BlogController extends Controller
 {
+    use ResolvesViewer;
+
     public function index(Request $request)
     {
-        $viewerId = $request->user()?->id;
+        // Public route — resolve the Sanctum token explicitly so `userLiked`
+        // reflects the logged-in viewer instead of always being false.
+        $viewerId = $this->viewerId($request);
 
         $blogs = Blog::with(['user', 'comments.user', 'likedBy'])
             ->latest()
