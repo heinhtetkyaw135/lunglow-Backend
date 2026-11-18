@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\ResolvesViewer;
 use App\Models\Blog;
+use App\Models\UserNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -84,6 +85,17 @@ class BlogController extends Controller
         } else {
             $blog->likedBy()->create(['user_id' => $viewer->id]);
             $blog->increment('likes');
+
+            // Notify the blog author (skip liking your own blog).
+            if ($blog->user_id !== $viewer->id) {
+                UserNotification::notify(
+                    $blog->user_id,
+                    'reaction',
+                    'New Like',
+                    sprintf('%s liked your blog "%s".', $viewer->name, $blog->title ?: 'Untitled'),
+                    ['blog_id' => $blog->id]
+                );
+            }
         }
 
         $blog->load(['user', 'comments.user', 'likedBy']);

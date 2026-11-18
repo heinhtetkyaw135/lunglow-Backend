@@ -34,7 +34,22 @@ class RequestController extends Controller
         ]);
 
         $req = $request->user()->requests()->create($data + ['status' => 'pending']);
+        $req->load('user');
 
-        return response()->json(['request' => ['id' => 'req-' . $req->id]], 201);
+        // Return the same shape as index() so the SPA can drop it straight
+        // into the member's request list without a refetch.
+        return response()->json([
+            'request' => [
+                'id' => 'req-' . $req->id,
+                'user' => $req->user->name,
+                'userId' => 'u-' . $req->user_id,
+                'avatar' => $req->user->avatar_url,
+                'category' => $req->category,
+                'subject' => $req->subject,
+                'message' => $req->message,
+                'status' => $req->status,
+                'createdAt' => $req->created_at->diffForHumans(),
+            ],
+        ], 201);
     }
 }

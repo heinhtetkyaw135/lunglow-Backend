@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\ResolvesViewer;
 use App\Models\Challenge;
+use App\Models\UserNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -32,8 +33,22 @@ class ChallengeController extends Controller
 
         if ($joined) {
             $challenge->participants()->detach($user->id);
+            UserNotification::notify(
+                $user->id,
+                'challenge',
+                'Challenge Left',
+                sprintf('You left the challenge "%s".', $challenge->title),
+                ['challenge_id' => $challenge->id, 'action' => 'left']
+            );
         } else {
             $challenge->participants()->attach($user->id, ['progress' => 0]);
+            UserNotification::notify(
+                $user->id,
+                'challenge',
+                'Challenge Joined',
+                sprintf('You joined the challenge "%s" — %d day(s) to earn the %s!', $challenge->title, $challenge->days, $challenge->reward ?: 'badge'),
+                ['challenge_id' => $challenge->id, 'action' => 'joined']
+            );
         }
 
         $challenge->loadCount('participants')
@@ -63,12 +78,31 @@ class ChallengeController extends Controller
             'last_log_date' => $today,
         ]);
 
+        $completed = $progress >= $challenge->days;
+        if ($completed) {
+            UserNotification::notify(
+                $user->id,
+                'challenge',
+                'Badge Earned!',
+                sprintf('Congratulations! You completed "%s" and earned the %s badge!', $challenge->title, $challenge->reward ?: 'challenge'),
+                ['challenge_id' => $challenge->id, 'action' => 'completed', 'reward' => $challenge->reward]
+            );
+        } else {
+            UserNotification::notify(
+                $user->id,
+                'challenge',
+                'Day Logged',
+                sprintf('Day %d of %d logged for "%s" — keep it up!', $progress, $challenge->days, $challenge->title),
+                ['challenge_id' => $challenge->id, 'action' => 'logged', 'progress' => $progress]
+            );
+        }
+
         $challenge->loadCount('participants')
             ->load(['participants' => fn($q) => $q->where('users.id', $user->id)]);
 
         return response()->json([
             'challenge' => $this->serialize($challenge, $user->id),
-            'completed' => $progress >= $challenge->days,
+            'completed' => $completed,
         ]);
     }
 

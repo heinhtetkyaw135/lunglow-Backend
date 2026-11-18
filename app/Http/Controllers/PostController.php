@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Concerns\ResolvesViewer;
 use App\Models\Post;
+use App\Models\UserNotification;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -94,6 +95,18 @@ class PostController extends Controller
             $existing->delete();
         } else {
             $post->reactions()->create(['user_id' => $viewer->id, 'type' => $data['type']]);
+
+            // Notify the post author (skip reacting to your own post).
+            if ($post->user_id !== $viewer->id) {
+                $labels = ['fire' => '🔥 Fire', 'clap' => '👏 Clap', 'heart' => '❤️ Heart'];
+                UserNotification::notify(
+                    $post->user_id,
+                    'reaction',
+                    'New Reaction',
+                    sprintf('%s reacted with %s to your post.', $viewer->name, $labels[$data['type']] ?? $data['type']),
+                    ['post_id' => $post->id, 'type' => $data['type']]
+                );
+            }
         }
 
         $post->load(['user', 'comments.user', 'reactions']);

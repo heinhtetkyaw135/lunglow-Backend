@@ -89,8 +89,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/requests', [RequestController::class, 'index']);
     Route::post('/requests', [RequestController::class, 'store']);
 
-    // Real-time peak-craving alerts (SPA polls every ~30s)
+    // Notifications: full history + real-time peak-craving alerts (~30s poll)
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::post('/notifications', [NotificationController::class, 'store']);
+    Route::delete('/notifications', [NotificationController::class, 'destroyAll']);
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead']);
     Route::get('/notifications/due', [NotificationController::class, 'due']);
+    Route::post('/notifications/{notification}/read', [NotificationController::class, 'markRead']);
+    Route::delete('/notifications/{notification}', [NotificationController::class, 'destroy']);
 });
 
 /*

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Blog;
 use App\Models\Comment;
 use App\Models\Post;
+use App\Models\UserNotification;
 use Illuminate\Http\Request;
 
 class CommentController extends Controller
@@ -24,6 +25,32 @@ class CommentController extends Controller
             'text' => $data['text'],
         ]);
         $comment->load('user');
+
+        // Notify the content author (skip self-comments).
+        $authorId = $model->user_id;
+        if ($authorId && $authorId !== $request->user()->id) {
+            $contentLabel = $type === 'post' ? 'post' : 'blog';
+            $contentTitle = $type === 'post'
+                ? ($model->title ?: mb_strimwidth((string) $model->content, 0, 60, '…'))
+                : ($model->title ?: 'your blog');
+            UserNotification::notify(
+                $authorId,
+                'comment',
+                'New Comment',
+                sprintf(
+                    '%s commented on your %s "%s": "%s"',
+                    $request->user()->name,
+                    $contentLabel,
+                    $contentTitle,
+                    mb_strimwidth($data['text'], 0, 120, '…')
+                ),
+                [
+                    'type' => $type,
+                    'content_id' => $numericId,
+                    'comment_id' => $comment->id,
+                ]
+            );
+        }
 
         $prefix = $type === 'post' ? 'pcom-' : 'bcom-';
         return response()->json(['comment' => [
