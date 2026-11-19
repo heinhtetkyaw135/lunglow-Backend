@@ -6,6 +6,7 @@ use App\Http\Controllers\Admin\RequestManagementController;
 use App\Http\Controllers\Admin\UserManagementController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\BlogController;
+use App\Http\Controllers\BootstrapController;
 use App\Http\Controllers\BroadcastController;
 use App\Http\Controllers\ChallengeController;
 use App\Http\Controllers\CheckinController;
@@ -32,6 +33,7 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/admin/login', [AuthController::class, 'adminLogin']);
 
 // Publicly readable feeds so landing/community/blog render without auth.
+Route::get('/bootstrap', [BootstrapController::class, 'index']);
 Route::get('/challenges', [ChallengeController::class, 'index']);
 Route::get('/posts', [PostController::class, 'index']);
 Route::get('/blogs', [BlogController::class, 'index']);

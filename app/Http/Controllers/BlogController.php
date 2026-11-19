@@ -98,8 +98,8 @@ class BlogController extends Controller
             }
         }
 
-        $blog->load(['user', 'comments.user', 'likedBy']);
-        return response()->json(['blog' => $this->serialize($blog->fresh(), $viewer->id)]);
+        $blog = $blog->fresh(['user', 'comments.user', 'likedBy']);
+        return response()->json(['blog' => $this->serialize($blog, $viewer->id)]);
     }
 
     private function serialize(Blog $b, ?int $viewerId): array

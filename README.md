@@ -30,7 +30,7 @@ DB_PASSWORD=
 ## Seeded accounts
 | Role   | Email                  | Password   |
 |--------|------------------------|------------|
-| Admin  | admin@lunglow.dev      | admin123   |
+| Admin  | admin@lunglow.dev      | Admin@2410 |
 | Member | heinhtet@lunglow.dev   | password   |
 
 > Use the **Admin** credentials on the admin login page (`POST /admin/login`).

@@ -8,17 +8,19 @@ use Illuminate\Support\Facades\DB;
 
 class HeatmapController extends Controller
 {
-    // Grid derives each cell from MAX(intensity) across logged craving events.
+    // Grid derives each cell from the LATEST logged intensity for that (day_index, slot_index).
     public function index(Request $request)
     {
         $rows = $request->user()->cravingLogs()
-            ->select('day_index', 'slot_index', DB::raw('MAX(intensity) as intensity'))
-            ->groupBy('day_index', 'slot_index')
-            ->get();
+            ->orderBy('occurred_at')
+            ->orderBy('id')
+            ->get(['day_index', 'slot_index', 'intensity']);
 
         $heatmap = [];
         foreach ($rows as $row) {
-            $heatmap["{$row->day_index}-{$row->slot_index}"] = (int) $row->intensity;
+            if ($row->slot_index >= 0 && $row->slot_index <= 5) {
+                $heatmap["{$row->day_index}-{$row->slot_index}"] = (int) $row->intensity;
+            }
         }
 
         return response()->json(['heatmap' => $heatmap]);
@@ -57,7 +59,12 @@ class HeatmapController extends Controller
         ]);
 
         $now = now();
-        $slot = intdiv($now->hour, 3); // 0..5 for 3h blocks
+        $hour = $now->hour;
+        $slot = $hour >= 6 && $hour < 9 ? 0
+            : ($hour >= 9 && $hour < 12 ? 1
+            : ($hour >= 12 && $hour < 15 ? 2
+            : ($hour >= 15 && $hour < 18 ? 3
+            : ($hour >= 18 && $hour < 21 ? 4 : 5))));
         $day = $data['day_index'] ?? $now->dayOfWeek;
         $slot = $data['slot_index'] ?? $slot;
 

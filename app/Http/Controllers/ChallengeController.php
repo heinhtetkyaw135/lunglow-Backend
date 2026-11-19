@@ -18,7 +18,7 @@ class ChallengeController extends Controller
         $viewerId = $this->viewerId($request);
 
         $challenges = Challenge::withCount('participants')
-            ->with(['participants' => fn($q) => $q->when($viewerId, fn($x) => $x->where('users.id', $viewerId))])
+            ->with($viewerId ? ['participants' => fn($q) => $q->where('users.id', $viewerId)] : [])
             ->latest()
             ->get()
             ->map(fn($c) => $this->serialize($c, $viewerId));
@@ -178,7 +178,9 @@ class ChallengeController extends Controller
 
     private function serialize(Challenge $c, ?int $viewerId): array
     {
-        $pivot = $viewerId ? $c->participants->first()?->pivot : null;
+        $pivot = ($viewerId && $c->relationLoaded('participants'))
+            ? $c->participants->firstWhere('id', $viewerId)?->pivot
+            : null;
 
         return [
             'id' => 'ch-' . $c->id,
