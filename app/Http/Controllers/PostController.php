@@ -76,6 +76,11 @@ class PostController extends Controller
         if ($post->image) {
             Storage::disk('public')->delete($post->image);
         }
+        $post->comments()->delete();
+        \App\Models\Report::where('target_type', 'post')
+            ->whereIn('target_id', ['post-' . $post->id, (string) $post->id])
+            ->where('status', 'pending')
+            ->update(['status' => 'resolved']);
         $post->delete();
         return response()->json(['ok' => true]);
     }
@@ -140,6 +145,7 @@ class PostController extends Controller
             'badgeKey' => $p->badge_key,
             'badgeCustom' => $p->badge_custom,
             'stats' => $p->stats ?? [],
+            'createdDate' => $p->created_at?->format('Y-m-d'),
             'reactions' => [
                 'fire' => ($counts['fire'] ?? 0) + $real['fire'],
                 'clap' => ($counts['clap'] ?? 0) + $real['clap'],

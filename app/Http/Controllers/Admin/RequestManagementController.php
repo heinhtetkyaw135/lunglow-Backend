@@ -21,6 +21,7 @@ class RequestManagementController extends Controller
                 'message' => $r->message,
                 'status' => $r->status,
                 'createdAt' => $r->created_at?->format('M j, Y'),
+                'createdDate' => $r->created_at?->format('Y-m-d'),
             ]);
 
         return response()->json(['requests' => $requests]);

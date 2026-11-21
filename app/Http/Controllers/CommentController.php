@@ -68,6 +68,10 @@ class CommentController extends Controller
         if ($comment->user_id !== $viewer->id && !$viewer->isAdmin()) {
             return response()->json(['message' => 'Forbidden'], 403);
         }
+        \App\Models\Report::where('target_type', 'comment')
+            ->whereIn('target_id', ['pcom-' . $comment->id, 'bcom-' . $comment->id, (string) $comment->id])
+            ->where('status', 'pending')
+            ->update(['status' => 'resolved']);
         $comment->delete();
         return response()->json(['ok' => true]);
     }

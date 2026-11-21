@@ -51,6 +51,15 @@ class UserManagementController extends Controller
     public function resetAvatar(User $user)
     {
         $user->update(['avatar' => null]);
+        \App\Models\Report::where('target_type', 'profile-image')
+            ->where(function ($q) use ($user) {
+                $q->where('target_id', 'u-' . $user->id)
+                  ->orWhere('target_id', (string) $user->id)
+                  ->orWhere('target_author', $user->name);
+            })
+            ->where('status', 'pending')
+            ->update(['status' => 'resolved']);
+
         return response()->json(['user' => ['id' => 'u-' . $user->id, 'avatar' => $user->avatar_url]]);
     }
 }

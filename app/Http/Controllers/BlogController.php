@@ -70,6 +70,11 @@ class BlogController extends Controller
         foreach ((array) $blog->images as $img) {
             if ($img) Storage::disk('public')->delete($img);
         }
+        $blog->comments()->delete();
+        \App\Models\Report::where('target_type', 'blog')
+            ->whereIn('target_id', ['blog-' . $blog->id, (string) $blog->id])
+            ->where('status', 'pending')
+            ->update(['status' => 'resolved']);
         $blog->delete();
         return response()->json(['ok' => true]);
     }
@@ -112,9 +117,11 @@ class BlogController extends Controller
             'title' => $b->title,
             'category' => $b->category,
             'author' => $b->user->name . ($b->author_role === 'admin' ? ' (Admin)' : ''),
+            'authorId' => 'u-' . $b->user_id,
             'authorRole' => $b->author_role,
             'authorAvatar' => $b->user->avatar_url,
             'createdAt' => $b->created_at->format('M j, Y'),
+            'createdDate' => $b->created_at->format('Y-m-d'),
             'image' => $images->first(),
             'images' => $images,
             'content' => $b->content,

@@ -147,7 +147,7 @@ class BootstrapController extends Controller
                 'bio' => $u->bio,
             ])->values();
 
-            $payload['reports'] = Report::with('reporter')->latest()->get()->map(fn($r) => [
+            $payload['reports'] = Report::with('reporter')->where('status', 'pending')->latest()->get()->map(fn($r) => [
                 'id' => 'rep-' . $r->id,
                 'targetType' => $r->target_type,
                 'targetId' => $r->target_id,
@@ -158,6 +158,7 @@ class BootstrapController extends Controller
                 'reportedBy' => $r->reporter?->name ?? 'Member',
                 'status' => $r->status,
                 'createdAt' => $r->created_at?->format('M j, Y'),
+                'createdDate' => $r->created_at?->format('Y-m-d'),
             ])->values();
 
             $payload['requests'] = UserRequest::with('user:id,name,avatar')->latest()->get()->map(fn($r) => [
@@ -170,6 +171,7 @@ class BootstrapController extends Controller
                 'message' => $r->message,
                 'status' => $r->status,
                 'createdAt' => $r->created_at?->format('M j, Y'),
+                'createdDate' => $r->created_at?->format('Y-m-d'),
             ])->values();
 
             $payload['analytics'] = app(AnalyticsController::class)->overview()->getData(true);
@@ -217,6 +219,7 @@ class BootstrapController extends Controller
             'badgeKey' => $p->badge_key,
             'badgeCustom' => $p->badge_custom,
             'stats' => $p->stats ?? [],
+            'createdDate' => $p->created_at?->format('Y-m-d'),
             'reactions' => [
                 'fire' => ($counts['fire'] ?? 0) + $real['fire'],
                 'clap' => ($counts['clap'] ?? 0) + $real['clap'],
@@ -243,9 +246,11 @@ class BootstrapController extends Controller
             'title' => $b->title,
             'category' => $b->category,
             'author' => $b->user->name . ($b->author_role === 'admin' ? ' (Admin)' : ''),
+            'authorId' => 'u-' . $b->user_id,
             'authorRole' => $b->author_role,
             'authorAvatar' => $b->user->avatar_url,
             'createdAt' => $b->created_at->format('M j, Y'),
+            'createdDate' => $b->created_at->format('Y-m-d'),
             'image' => $images->first(),
             'images' => $images,
             'content' => $b->content,

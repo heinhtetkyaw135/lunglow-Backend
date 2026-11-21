@@ -66,5 +66,8 @@ class DatabaseSeeder extends Seeder
                 'likes' => 0,
             ]
         );
+
+        // ---- 10 Burmese Member Users (password: 12345678) + 20 Blog Feed Posts ----
+        $this->call(BurmeseMembersBlogSeeder::class);
     }
 }
